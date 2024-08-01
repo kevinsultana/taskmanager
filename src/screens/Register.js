@@ -43,7 +43,7 @@ export default function Register({navigation}) {
           </View>
           <Text style={styles.textModal}>Email</Text>
           <View style={styles.textInputModal}>
-            <Icon name="lock" size={20} color="black" />
+            <Icon name="email" size={20} color="black" />
             <Gap width={5} />
             <TextInput
               placeholder="Masukkan email disini..."
@@ -58,7 +58,7 @@ export default function Register({navigation}) {
             <Icon name="lock" size={20} color="black" />
             <Gap width={5} />
             <TextInput
-              placeholder="Masukkan password disini"
+              placeholder="Masukkan password disini..."
               placeholderTextColor={'grey'}
               backgroundColor="white"
               value={password}
@@ -75,7 +75,7 @@ export default function Register({navigation}) {
             <Icon name="lock" size={20} color="black" />
             <Gap width={5} />
             <TextInput
-              placeholder="Masukkan password disini"
+              placeholder="Masukkan password disini..."
               placeholderTextColor={'grey'}
               backgroundColor="white"
               value={confirmPassword}
@@ -92,13 +92,7 @@ export default function Register({navigation}) {
             </TouchableOpacity>
           </View>
 
-          <View
-            style={{
-              flexDirection: 'row',
-              justifyContent: 'flex-end',
-              alignItems: 'center',
-              marginHorizontal: 20,
-            }}>
+          <View style={styles.viewIngatSaya}>
             <CheckBox
               value={true}
               tintColors={{true: 'white', false: 'white'}}
@@ -129,6 +123,12 @@ export default function Register({navigation}) {
 }
 
 const styles = StyleSheet.create({
+  viewIngatSaya: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+    marginHorizontal: 20,
+  },
   textLogin: {
     fontSize: 19,
     fontWeight: '700',

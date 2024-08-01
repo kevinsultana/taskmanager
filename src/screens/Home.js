@@ -64,8 +64,11 @@ export default function Home({navigation}) {
     }));
   };
 
-  const [deskripsi, setDeskripsi] = useState('');
   const [tugas, setTugas] = useState('');
+  const [deskripsi, setDeskripsi] = useState('');
+  const [editTugas, setEditTugas] = useState('');
+  const [editDeskripsi, setEditDeskripsi] = useState('');
+
   const maxLength = 255;
 
   const handleTugasChange = input => {
@@ -78,7 +81,16 @@ export default function Home({navigation}) {
       setDeskripsi(input);
     }
   };
-
+  const handleEditTugasChange = input => {
+    if (input.length <= maxLength) {
+      setEditTugas(input);
+    }
+  };
+  const handleEditDeskripsiChange = input => {
+    if (input.length <= maxLength) {
+      setEditDeskripsi(input);
+    }
+  };
   const renderItem = ({item}) => (
     <View>
       <View style={styles.viewRenderHeader}>
@@ -224,13 +236,7 @@ export default function Home({navigation}) {
                 onChangeText={handleDeskripsiChange}
               />
             </View>
-            <Text
-              style={{
-                color: 'white',
-                alignSelf: 'flex-end',
-                right: 15,
-                fontSize: 12,
-              }}>
+            <Text style={styles.textCounter}>
               {deskripsi.length} / {maxLength}
             </Text>
             <Gap height={20} />
@@ -265,17 +271,29 @@ export default function Home({navigation}) {
               </TouchableOpacity>
             </View>
             <Gap height={20} />
-            <TextInput
-              placeholder="Edit Tugas"
-              placeholderTextColor="grey"
-              style={styles.textInput}
-            />
+            <View style={styles.textInput}>
+              <TextInput
+                placeholder="Edit Tugas"
+                placeholderTextColor="grey"
+                value={editTugas}
+                onChangeText={setEditTugas}
+              />
+            </View>
+            <Text style={styles.textCounter}>
+              {editTugas.length}/{maxLength}
+            </Text>
             <Gap height={30} />
-            <TextInput
-              placeholder="Edit deskripsi"
-              placeholderTextColor="grey"
-              style={styles.textInput}
-            />
+            <View style={styles.textInput}>
+              <TextInput
+                placeholder="Edit deskripsi"
+                placeholderTextColor="grey"
+                value={editDeskripsi}
+                onChangeText={setEditDeskripsi}
+              />
+            </View>
+            <Text style={styles.textCounter}>
+              {editDeskripsi.length}/{maxLength}
+            </Text>
             <Gap height={20} />
             <TouchableNativeFeedback useForeground>
               <View style={styles.viewbtnAddTugasModal}>
@@ -290,6 +308,12 @@ export default function Home({navigation}) {
 }
 
 const styles = StyleSheet.create({
+  textCounter: {
+    color: 'white',
+    alignSelf: 'flex-end',
+    right: 15,
+    fontSize: 12,
+  },
   viewLineBorder: {
     alignSelf: 'center',
     width: '90%',
