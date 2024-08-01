@@ -1,5 +1,4 @@
 import {
-  ImageBackground,
   StatusBar,
   StyleSheet,
   Text,
@@ -7,13 +6,16 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import {Gap} from '../component';
+import {Background, Gap} from '../component';
 import axios from 'axios';
 import {useState} from 'react';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import CheckBox from '@react-native-community/checkbox';
 
 export default function Login({navigation}) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [secure, setSecure] = useState(true);
 
   function submitLogin() {
     axios
@@ -31,52 +33,75 @@ export default function Login({navigation}) {
   }
 
   return (
-    <ImageBackground source={require('../assets/background.jpg')}>
-      <View>
-        <StatusBar backgroundColor={'#a1a1a1'} />
-        <View style={styles.viewSingin}>
-          <Text style={styles.textSignIn}>Sign in</Text>
-          <View style={styles.viewModal}>
-            <Gap height={20} />
-            <Text style={styles.textModal}>Email</Text>
+    <View>
+      <Background />
+      <StatusBar backgroundColor={'#a1a1a1'} />
+      <View style={styles.viewSignin}>
+        <Text style={styles.textSignIn}>Sign in</Text>
+        <View style={styles.viewModal}>
+          <Gap height={20} />
+          <Text style={styles.textModal}>Email</Text>
+          <View style={styles.textInputModal}>
+            <Icon name="email" size={20} color="black" />
+            <Gap width={5} />
             <TextInput
               placeholder="Masukkan email disini"
               placeholderTextColor={'grey'}
               backgroundColor="white"
-              style={styles.textInputModal}
               value={email}
               onChangeText={setEmail}
             />
-            <Text style={styles.textModal}>Password</Text>
+          </View>
+          <Text style={styles.textModal}>Password</Text>
+          <View style={styles.textInputModal}>
+            <Icon name="lock" size={20} color="black" />
+            <Gap width={5} />
             <TextInput
               placeholder="Masukkan password disini"
               placeholderTextColor={'grey'}
               backgroundColor="white"
-              style={styles.textInputModal}
               value={password}
               onChangeText={setPassword}
-              secureTextEntry
+              secureTextEntry={secure}
+              style={{flex: 1, color: 'black'}}
             />
-            <Gap height={10} />
-            <TouchableOpacity
-              style={styles.btnLogin}
-              onPress={() => navigation.navigate('Home')}>
-              <Text style={styles.textLogin}>Login</Text>
+            <TouchableOpacity onPress={() => setSecure(!secure)}>
+              <Icon name={secure ? 'eye-off' : 'eye'} size={20} color="black" />
             </TouchableOpacity>
-            <TouchableOpacity
-              style={{
-                ...styles.btnLogin,
-                backgroundColor: '#9A4242',
-                width: 100,
-              }}
-              onPress={() => navigation.navigate('Register')}>
-              <Text style={styles.textLogin}>Daftar</Text>
-            </TouchableOpacity>
-            <Gap height={20} />
           </View>
+          <View
+            style={{
+              flexDirection: 'row',
+              justifyContent: 'flex-end',
+              alignItems: 'center',
+              marginHorizontal: 20,
+            }}>
+            <CheckBox
+              value={true}
+              tintColors={{true: 'white', false: 'white'}}
+              style={{transform: [{scale: 0.8}]}}
+            />
+            <Text style={{fontWeight: '500', color: 'white'}}>Ingat Saya</Text>
+          </View>
+          <Gap height={5} />
+          <TouchableOpacity
+            style={styles.btnLogin}
+            onPress={() => navigation.replace('Home')}>
+            <Text style={styles.textLogin}>Masuk</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={{
+              ...styles.btnLogin,
+              backgroundColor: '#9A4242',
+              width: 100,
+            }}
+            onPress={() => navigation.navigate('Register')}>
+            <Text style={styles.textLogin}>Daftar</Text>
+          </TouchableOpacity>
+          <Gap height={20} />
         </View>
       </View>
-    </ImageBackground>
+    </View>
   );
 }
 
@@ -100,10 +125,13 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   textInputModal: {
-    borderRadius: 20,
+    borderRadius: 25,
     marginHorizontal: 20,
     elevation: 5,
-    paddingHorizontal: 20,
+    paddingHorizontal: 10,
+    backgroundColor: 'white',
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   textModal: {
     marginHorizontal: 30,
@@ -118,7 +146,7 @@ const styles = StyleSheet.create({
     borderRadius: 25,
     alignContent: 'center',
   },
-  viewSingin: {
+  viewSignin: {
     alignItems: 'center',
     justifyContent: 'center',
     width: '100%',

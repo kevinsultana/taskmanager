@@ -1,6 +1,5 @@
 import {
-  Button,
-  ImageBackground,
+  Alert,
   StatusBar,
   StyleSheet,
   Text,
@@ -8,79 +7,129 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import {Gap} from '../component';
-import Splashscreen from './Splashscreen';
-import Login from './Login';
+import {Background, Gap} from '../component';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import {useState} from 'react';
+import CheckBox from '@react-native-community/checkbox';
 
-export default function Register({navigation, routes}) {
+export default function Register({navigation}) {
+  const [nama, setNama] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [secure, setSecure] = useState(true);
+  const [confirmSecure, setConfirmSecure] = useState(true);
+
   return (
-    <ImageBackground source={require('../assets/background.jpg')}>
-      <View>
-        <StatusBar backgroundColor={'#a1a1a1'} />
-        <View style={styles.viewSingin}>
-          <Text style={styles.textSignUp}>Sign Up</Text>
-          <View style={styles.viewModal}>
-            <Gap height={20} />
-            <Text style={styles.textModal}>Username</Text>
+    <View style={{flex: 1}}>
+      <Background />
+      <StatusBar backgroundColor={'#a1a1a1'} />
+      <View style={styles.viewSignin}>
+        <Text style={styles.textSignIn}>Sign Up</Text>
+        <View style={styles.viewModal}>
+          <Gap height={20} />
+          <Text style={styles.textModal}>Nama</Text>
+          <View style={styles.textInputModal}>
+            <Icon name="account" size={20} color="black" />
+            <Gap width={5} />
+
             <TextInput
-              placeholder="Masukkan username disini"
+              placeholder="Masukkan Nama disini..."
               placeholderTextColor={'grey'}
               backgroundColor="white"
-              style={styles.textInputModal}
+              value={nama}
+              onChangeText={setNama}
             />
-            <Text style={styles.textModal}>Email</Text>
+          </View>
+          <Text style={styles.textModal}>Email</Text>
+          <View style={styles.textInputModal}>
+            <Icon name="lock" size={20} color="black" />
+            <Gap width={5} />
             <TextInput
-              placeholder="Masukkan email disini"
+              placeholder="Masukkan email disini..."
               placeholderTextColor={'grey'}
               backgroundColor="white"
-              style={styles.textInputModal}
+              value={email}
+              onChangeText={setEmail}
             />
-            <Text style={styles.textModal}>Password</Text>
+          </View>
+          <Text style={styles.textModal}>Password</Text>
+          <View style={styles.textInputModal}>
+            <Icon name="lock" size={20} color="black" />
+            <Gap width={5} />
             <TextInput
               placeholder="Masukkan password disini"
               placeholderTextColor={'grey'}
               backgroundColor="white"
-              style={styles.textInputModal}
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry={secure}
+              style={{flex: 1, color: 'black'}}
             />
-            <Text style={styles.textModal}>Confirm password</Text>
+            <TouchableOpacity onPress={() => setSecure(!secure)}>
+              <Icon name={secure ? 'eye-off' : 'eye'} size={20} color="black" />
+            </TouchableOpacity>
+          </View>
+          <Text style={styles.textModal}>Confirm Password</Text>
+          <View style={styles.textInputModal}>
+            <Icon name="lock" size={20} color="black" />
+            <Gap width={5} />
             <TextInput
-              placeholder="Masukkan  password disini"
+              placeholder="Masukkan password disini"
               placeholderTextColor={'grey'}
               backgroundColor="white"
-              style={styles.textInputModal}
+              value={confirmPassword}
+              onChangeText={setConfirmPassword}
+              secureTextEntry={confirmSecure}
+              style={{flex: 1, color: 'black'}}
             />
-            <Gap height={10} />
-            <TouchableOpacity
-              style={styles.btnLogin}
-              onPress={() => navigation.reset({routes: [{name: 'Login'}]})}>
-              <Text style={styles.textBtnLogin}>Daftar</Text>
+            <TouchableOpacity onPress={() => setConfirmSecure(!confirmSecure)}>
+              <Icon
+                name={confirmSecure ? 'eye-off' : 'eye'}
+                size={20}
+                color="black"
+              />
             </TouchableOpacity>
-            <TouchableOpacity
-              style={{
-                ...styles.btnLogin,
-                backgroundColor: '#9A4242',
-                width: 100,
-              }}
-              onPress={() => navigation.goBack()}>
-              <Text style={styles.textBtnLogin}>Kembali</Text>
-            </TouchableOpacity>
-            <Gap height={20} />
           </View>
+
+          <View
+            style={{
+              flexDirection: 'row',
+              justifyContent: 'flex-end',
+              alignItems: 'center',
+              marginHorizontal: 20,
+            }}>
+            <CheckBox
+              value={true}
+              tintColors={{true: 'white', false: 'white'}}
+              style={{transform: [{scale: 0.8}]}}
+            />
+            <Text style={{fontWeight: '500', color: 'white'}}>Ingat Saya</Text>
+          </View>
+          <Gap height={5} />
+          <TouchableOpacity
+            style={styles.btnLogin}
+            onPress={() => navigation.reset({routes: [{name: 'Login'}]})}>
+            <Text style={styles.textLogin}>Daftar</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={{
+              ...styles.btnLogin,
+              backgroundColor: '#9A4242',
+              width: 100,
+            }}
+            onPress={() => navigation.goBack()}>
+            <Text style={styles.textLogin}>Kembali</Text>
+          </TouchableOpacity>
+          <Gap height={20} />
         </View>
       </View>
-    </ImageBackground>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  background: {
-    flex: 1,
-    width: '100%',
-    height: '100%',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  textBtnLogin: {
+  textLogin: {
     fontSize: 19,
     fontWeight: '700',
     alignItems: 'center',
@@ -99,10 +148,13 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   textInputModal: {
-    borderRadius: 20,
+    borderRadius: 25,
     marginHorizontal: 20,
     elevation: 5,
-    paddingHorizontal: 20,
+    paddingHorizontal: 10,
+    backgroundColor: 'white',
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   textModal: {
     marginHorizontal: 30,
@@ -117,22 +169,15 @@ const styles = StyleSheet.create({
     borderRadius: 25,
     alignContent: 'center',
   },
-  viewSingin: {
+  viewSignin: {
     alignItems: 'center',
     justifyContent: 'center',
     width: '100%',
     height: '100%',
   },
-  textSignUp: {
+  textSignIn: {
     fontSize: 36,
     color: 'white',
     fontWeight: '700',
-  },
-  background: {
-    flex: 1,
-    width: '100%',
-    height: '100%',
-    justifyContent: 'center',
-    alignItems: 'center',
   },
 });

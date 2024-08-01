@@ -11,11 +11,11 @@ import {
   TextInput,
   TouchableNativeFeedback,
 } from 'react-native';
-import {Gap} from '../component';
+import {Background, Gap} from '../component';
 import {useState} from 'react';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import Icons from 'react-native-vector-icons/MaterialIcons';
 import Collapsible from 'react-native-collapsible';
-import * as Animatable from 'react-native-animatable';
 import CheckBox from '@react-native-community/checkbox';
 
 const DATA = [
@@ -64,6 +64,21 @@ export default function Home({navigation}) {
     }));
   };
 
+  const [deskripsi, setDeskripsi] = useState('');
+  const [tugas, setTugas] = useState('');
+  const maxLength = 255;
+
+  const handleTugasChange = input => {
+    if (input.length <= maxLength) {
+      setTugas(input);
+    }
+  };
+  const handleDeskripsiChange = input => {
+    if (input.length <= maxLength) {
+      setDeskripsi(input);
+    }
+  };
+
   const renderItem = ({item}) => (
     <View>
       <View style={styles.viewRenderHeader}>
@@ -84,29 +99,26 @@ export default function Home({navigation}) {
         </View>
       </View>
       <View>
-        <Animatable.View animation="fadeIn" duration={500}></Animatable.View>
         <Collapsible collapsed={!collapsed[item.id]}>
-          <Animatable.View animation="fadeIn" duration={500}>
-            <Text style={styles.textRenderDesc}>{item.content}</Text>
-            <Gap height={30} />
-            <View style={styles.viewEditHapus}>
-              <View style={styles.viewBtnHapus}>
-                <TouchableOpacity>
-                  <Icon name={'trash-can'} color={'white'} size={20} />
-                </TouchableOpacity>
-              </View>
-              <Gap width={10} />
-              <View style={styles.viewBtnEdit}>
-                <TouchableOpacity onPress={openModal}>
-                  <View style={{flexDirection: 'row'}}>
-                    <Icon name={'lead-pencil'} color={'white'} size={20} />
-                    <Gap width={10} />
-                    <Text style={styles.textBtnEdit}>Edit</Text>
-                  </View>
-                </TouchableOpacity>
-              </View>
+          <Text style={styles.textRenderDesc}>{item.content}</Text>
+          <Gap height={30} />
+          <View style={styles.viewEditHapus}>
+            <View style={styles.viewBtnHapus}>
+              <TouchableOpacity>
+                <Icon name={'trash-can'} color={'white'} size={20} />
+              </TouchableOpacity>
             </View>
-          </Animatable.View>
+            <Gap width={10} />
+            <View style={styles.viewBtnEdit}>
+              <TouchableOpacity onPress={openModal}>
+                <View style={{flexDirection: 'row'}}>
+                  <Icon name={'lead-pencil'} color={'white'} size={20} />
+                  <Gap width={10} />
+                  <Text style={styles.textBtnEdit}>Edit</Text>
+                </View>
+              </TouchableOpacity>
+            </View>
+          </View>
         </Collapsible>
       </View>
 
@@ -116,58 +128,49 @@ export default function Home({navigation}) {
   );
 
   return (
-    <ImageBackground
-      source={require('../assets/background.jpg')}
-      style={{flex: 1}}>
-      <View>
-        <StatusBar backgroundColor={'#a1a1a1'} />
+    <View style={{flex: 1}}>
+      <Background />
+      <StatusBar backgroundColor={'#a1a1a1'} />
 
-        {/* header signout, username, profile */}
-        <View style={styles.header}>
-          <View style={{flexDirection: 'row'}}>
-            <TouchableOpacity onPress={() => navigation.replace('Login')}>
-              <Icon
-                name={'exit-to-app'}
-                size={60}
-                color={'white'}
-                style={{transform: [{rotate: '180deg'}]}}
-              />
-            </TouchableOpacity>
-            <Gap width={10} />
-            <View>
-              <Text style={{color: 'white', fontSize: 18}}>Hi,</Text>
-              <Text style={{color: 'white', fontSize: 26}}>Username</Text>
-            </View>
-          </View>
+      {/* header signout, username, profile */}
+      <View style={styles.header}>
+        <View style={{flexDirection: 'row'}}>
+          <TouchableOpacity onPress={() => navigation.replace('Login')}>
+            <Icon
+              name={'exit-to-app'}
+              size={50}
+              color={'white'}
+              style={{transform: [{rotate: '180deg'}]}}
+            />
+          </TouchableOpacity>
+          <Gap width={10} />
           <View>
-            <Icon name={'account-circle-outline'} size={50} color={'white'} />
+            <Text style={{color: 'white', fontSize: 15}}>Hi,</Text>
+            <Text style={{color: 'white', fontSize: 22}}>Username</Text>
           </View>
         </View>
-        <View style={styles.viewLineDiagonal} />
-
-        {/* flatlist */}
-        <View>
-          <FlatList
-            data={DATA}
-            renderItem={renderItem}
-            keyExtractor={item => item.id}
-            // ListFooterComponent={<Gap height={200} />}
-          />
-        </View>
+        <Icon name={'account-circle-outline'} size={50} color={'white'} />
       </View>
+      <View style={{...styles.viewLineDiagonal, marginTop: 5}} />
 
-      {/* tombol tambah tugas */}
-      <View>
-        <View style={styles.viewLocBtnAddTugas}>
-          <View style={styles.viewBtnAddTugas}>
-            <TouchableOpacity onPress={openModalAdd}>
-              <View style={{flexDirection: 'row'}}>
-                <Icon name={'plus-thick'} color={'white'} size={20} />
-                <Gap width={3} />
-                <Text style={styles.textAddTugas}>Tambah Tugas</Text>
-              </View>
-            </TouchableOpacity>
-          </View>
+      {/* flatlist */}
+
+      <FlatList
+        data={DATA}
+        renderItem={renderItem}
+        keyExtractor={item => item.id}
+      />
+
+      <View style={{...styles.viewLineDiagonal, marginBottom: 10}} />
+      <View style={styles.viewLocBtnAddTugas}>
+        <View style={styles.viewBtnAddTugas}>
+          <TouchableOpacity onPress={openModalAdd}>
+            <View style={{flexDirection: 'row'}}>
+              <Icon name={'plus-thick'} color={'white'} size={20} />
+              <Gap width={3} />
+              <Text style={styles.textAddTugas}>Tambah</Text>
+            </View>
+          </TouchableOpacity>
         </View>
       </View>
 
@@ -193,17 +196,43 @@ export default function Home({navigation}) {
               </TouchableOpacity>
             </View>
             <Gap height={20} />
-            <TextInput
-              placeholder="Tambah Tugas"
-              placeholderTextColor="grey"
-              style={styles.textInput}
-            />
+            <View style={styles.textInput}>
+              <Icons name="post-add" size={20} color="black" />
+              <TextInput
+                placeholder="Tambah Tugas"
+                placeholderTextColor="grey"
+                value={tugas}
+                onChangeText={handleTugasChange}
+              />
+            </View>
+            <Text
+              style={{
+                color: 'white',
+                alignSelf: 'flex-end',
+                right: 15,
+                fontSize: 12,
+              }}>
+              {tugas.length} / {maxLength}
+            </Text>
             <Gap height={30} />
-            <TextInput
-              placeholder="Tambah deskripsi"
-              placeholderTextColor="grey"
-              style={styles.textInput}
-            />
+            <View style={styles.textInput}>
+              <Icons name="post-add" size={20} color="black" />
+              <TextInput
+                placeholder="Tambah Deskripsi"
+                placeholderTextColor="grey"
+                value={deskripsi}
+                onChangeText={handleDeskripsiChange}
+              />
+            </View>
+            <Text
+              style={{
+                color: 'white',
+                alignSelf: 'flex-end',
+                right: 15,
+                fontSize: 12,
+              }}>
+              {deskripsi.length} / {maxLength}
+            </Text>
             <Gap height={20} />
             <TouchableNativeFeedback useForeground>
               <View style={styles.viewbtnAddTugasModal}>
@@ -256,7 +285,7 @@ export default function Home({navigation}) {
           </View>
         </View>
       </Modal>
-    </ImageBackground>
+    </View>
   );
 }
 
@@ -265,7 +294,7 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     width: '90%',
     height: 1,
-    backgroundColor: 'white',
+    backgroundColor: '#ffffffb3',
     marginVertical: 10,
     flex: 1,
   },
@@ -332,9 +361,11 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     width: 260,
     height: 40,
-    alignSelf: 'center',
+    alignContent: 'center',
     borderRadius: 40 / 2,
     paddingHorizontal: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   textModalHeader: {
     fontSize: 18,
@@ -366,23 +397,24 @@ const styles = StyleSheet.create({
   viewLocBtnAddTugas: {
     alignSelf: 'center',
     justifyContent: 'center',
+    bottom: 30,
   },
   viewBtnAddTugas: {
-    width: 150,
     height: 40,
     borderRadius: 40 / 2,
+    paddingHorizontal: 15,
     backgroundColor: '#00677E',
     justifyContent: 'center',
     alignItems: 'center',
-    alignSelf: 'baseline',
+    elevation: 5,
   },
   viewLineDiagonal: {
     alignSelf: 'center',
     width: '80%',
-    height: 1,
+    height: 2,
     backgroundColor: 'white',
-    marginVertical: 10,
-    transform: [{rotate: '175deg'}],
+    marginVertical: 30,
+    transform: [{rotate: '-3deg'}],
   },
   header: {
     margin: 30,
