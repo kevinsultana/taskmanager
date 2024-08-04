@@ -3,22 +3,43 @@ import {
   StatusBar,
   StyleSheet,
   Text,
-  TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
 import {Background, Gap} from '../component';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import {useState} from 'react';
 import CheckBox from '@react-native-community/checkbox';
+import FormInput from '../component/FormInput';
 
 export default function Register({navigation}) {
-  const [nama, setNama] = useState('');
+  const [userName, setUserName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [secure, setSecure] = useState(true);
-  const [confirmSecure, setConfirmSecure] = useState(true);
+  const [rememberMe, setRememberMe] = useState('');
+
+  const submitRegister = async () => {
+    if (password !== confirmPassword) {
+      Alert.alert('Registrasi Gagal', 'Passwords tidak sama.');
+      return;
+    }
+    try {
+      const response = await axios.post(
+        'https://todo-api-omega.vercel.app/api/v1/auth/register',
+        {
+          username: userName,
+          email: email,
+          password: password,
+          confirmPassword: confirmPassword,
+        },
+      );
+      if (response) {
+        navigation.reset({routes: [{name: 'Login'}]});
+      }
+    } catch (error) {
+      Alert.alert('Registrasi Gagal', 'Silahkan Coba Lagi');
+    }
+  };
 
   return (
     <View style={{flex: 1}}>
@@ -28,82 +49,62 @@ export default function Register({navigation}) {
         <Text style={styles.textSignIn}>Sign Up</Text>
         <View style={styles.viewModal}>
           <Gap height={20} />
-          <Text style={styles.textModal}>Nama</Text>
-          <View style={styles.textInputModal}>
-            <Icon name="account" size={20} color="black" />
-            <Gap width={5} />
+          <FormInput
+            title="Username"
+            iconName="account"
+            placeholder="Masukkan Username..."
+            autoCapitalize={'words'}
+            onChangeText={userName => setUserName(userName)}
+          />
 
-            <TextInput
-              placeholder="Masukkan Nama disini..."
-              placeholderTextColor={'grey'}
-              backgroundColor="white"
-              value={nama}
-              onChangeText={setNama}
-            />
-          </View>
-          <Text style={styles.textModal}>Email</Text>
-          <View style={styles.textInputModal}>
-            <Icon name="email" size={20} color="black" />
-            <Gap width={5} />
-            <TextInput
-              placeholder="Masukkan email disini..."
-              placeholderTextColor={'grey'}
-              backgroundColor="white"
-              value={email}
-              onChangeText={setEmail}
-            />
-          </View>
-          <Text style={styles.textModal}>Password</Text>
-          <View style={styles.textInputModal}>
-            <Icon name="lock" size={20} color="black" />
-            <Gap width={5} />
-            <TextInput
-              placeholder="Masukkan password disini..."
-              placeholderTextColor={'grey'}
-              backgroundColor="white"
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry={secure}
-              style={{flex: 1, color: 'black'}}
-            />
-            <TouchableOpacity onPress={() => setSecure(!secure)}>
-              <Icon name={secure ? 'eye-off' : 'eye'} size={20} color="black" />
-            </TouchableOpacity>
-          </View>
-          <Text style={styles.textModal}>Confirm Password</Text>
-          <View style={styles.textInputModal}>
-            <Icon name="lock" size={20} color="black" />
-            <Gap width={5} />
-            <TextInput
-              placeholder="Masukkan password disini..."
-              placeholderTextColor={'grey'}
-              backgroundColor="white"
-              value={confirmPassword}
-              onChangeText={setConfirmPassword}
-              secureTextEntry={confirmSecure}
-              style={{flex: 1, color: 'black'}}
-            />
-            <TouchableOpacity onPress={() => setConfirmSecure(!confirmSecure)}>
-              <Icon
-                name={confirmSecure ? 'eye-off' : 'eye'}
-                size={20}
-                color="black"
-              />
-            </TouchableOpacity>
-          </View>
+          <Gap height={5} />
 
-          <View style={styles.viewIngatSaya}>
+          <FormInput
+            title="Email"
+            placeholder="Masukkan Email..."
+            autoCapitalize={'none'}
+            keyboardType={'email-address'}
+            onChangeText={email => setEmail(email)}
+          />
+
+          <Gap height={5} />
+
+          <FormInput
+            title="Password"
+            iconName="lock"
+            placeholder="Masukkan Password..."
+            autoCapitalize={'none'}
+            password={true}
+            onChangeText={password => setPassword(password)}
+          />
+
+          <Gap height={5} />
+
+          <FormInput
+            title="Password"
+            iconName="lock"
+            placeholder="Masukkan Password..."
+            autoCapitalize={'none'}
+            password={true}
+            onChangeText={confirmPassword =>
+              setConfirmPassword(confirmPassword)
+            }
+          />
+          <Gap height={10} />
+          <View style={styles.viewRememberMe}>
             <CheckBox
-              value={true}
+              onChange={() => setRememberMe(!rememberMe)}
+              value={rememberMe}
               tintColors={{true: 'white', false: 'white'}}
-              style={{transform: [{scale: 0.8}]}}
             />
-            <Text style={{fontWeight: '500', color: 'white'}}>Ingat Saya</Text>
+            <Text
+              style={{fontWeight: '500', color: 'white'}}
+              onPress={() => setRememberMe(!rememberMe)}>
+              Ingat Saya
+            </Text>
           </View>
           <Gap height={5} />
-          <TouchableOpacity
-            style={styles.btnLogin}
-            onPress={() => navigation.reset({routes: [{name: 'Login'}]})}>
+          <TouchableOpacity style={styles.btnLogin} onPress={submitRegister}>
             <Text style={styles.textLogin}>Daftar</Text>
           </TouchableOpacity>
           <TouchableOpacity
@@ -123,9 +124,9 @@ export default function Register({navigation}) {
 }
 
 const styles = StyleSheet.create({
-  viewIngatSaya: {
+  viewRememberMe: {
     flexDirection: 'row',
-    justifyContent: 'flex-end',
+    alignSelf: 'flex-end',
     alignItems: 'center',
     marginHorizontal: 20,
   },

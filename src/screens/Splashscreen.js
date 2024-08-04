@@ -1,8 +1,30 @@
 import {Image, StyleSheet, Text, View} from 'react-native';
-import React from 'react';
+import React, {useEffect} from 'react';
 import {Background} from '../component';
+import EncryptedStorage from 'react-native-encrypted-storage';
 
 export default function Splashscreen({navigation}) {
+  async function refreshToken() {
+    try {
+      const userToken = await EncryptedStorage.getItem('userToken');
+      if (userToken) {
+        setTimeout(() => {
+          navigation.replace('Home');
+        }, 3000);
+      } else {
+        setTimeout(() => {
+          navigation.replace('Login');
+        }, 3000);
+      }
+    } catch (error) {
+      console.log('gagal di ambil');
+    }
+  }
+
+  useEffect(() => {
+    refreshToken();
+  }, []);
+
   return (
     <View style={style.viewContainer}>
       <Background />

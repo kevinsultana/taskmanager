@@ -8,46 +8,29 @@ import {
   FlatList,
   Modal,
   Pressable,
-  TextInput,
   TouchableNativeFeedback,
 } from 'react-native';
 import {Background, Gap} from '../component';
-import {useState} from 'react';
+import {useEffect, useState} from 'react';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import Icons from 'react-native-vector-icons/MaterialIcons';
 import Collapsible from 'react-native-collapsible';
 import CheckBox from '@react-native-community/checkbox';
+import FormInput from '../component/FormInput';
+import EncryptedStorage from 'react-native-encrypted-storage';
+import axios from 'axios';
 
 const DATA = [
   {
     id: '1',
     title: 'Tugas Satu',
-    content: 'Deskripsi tugas satu yang sangat panjang sekali',
-    checked: false,
-  },
-  {
-    id: '2',
-    title: 'Tugas Dua',
-    content: 'Deskripsi tugas dua yang sangat panjang sekali',
-    checked: false,
-  },
-  {
-    id: '3',
-    title: 'Tugas Tiga',
-    content: 'Deskripsi tugas tiga yang sangat panjang sekali',
-    checked: false,
-  },
-  {
-    id: '4',
-    title: 'Tugas Empat',
-    content: 'Deskripsi tugas empat yang sangat panjang sekali',
+    desc: 'Deskripsi tugas satu yang sangat panjang sekali',
     checked: false,
   },
 ];
 
 export default function Home({navigation}) {
   const [collapsed, setCollapsed] = useState({});
-  const [checked, setChecked] = useState({});
+  const [checked, setChecked] = useState('');
 
   const [modalVisible, setModalVisible] = useState(false);
   const closeModal = () => setModalVisible(false);
@@ -57,44 +40,26 @@ export default function Home({navigation}) {
   const closeModalAdd = () => setModalVisibleAdd(false);
   const openModalAdd = () => setModalVisibleAdd(true);
 
-  const toggleCollapse = id => {
+  const toggleCollapse = _id => {
     setCollapsed(prevState => ({
       ...prevState,
-      [id]: !prevState[id],
+      [_id]: !prevState[_id],
     }));
   };
 
   const [tugas, setTugas] = useState('');
   const [deskripsi, setDeskripsi] = useState('');
-  const [editTugas, setEditTugas] = useState('');
-  const [editDeskripsi, setEditDeskripsi] = useState('');
 
-  const maxLength = 255;
-
-  const handleTugasChange = input => {
-    if (input.length <= maxLength) {
-      setTugas(input);
-    }
-  };
-  const handleDeskripsiChange = input => {
-    if (input.length <= maxLength) {
-      setDeskripsi(input);
-    }
-  };
-  const handleEditTugasChange = input => {
-    if (input.length <= maxLength) {
-      setEditTugas(input);
-    }
-  };
-  const handleEditDeskripsiChange = input => {
-    if (input.length <= maxLength) {
-      setEditDeskripsi(input);
-    }
-  };
   const renderItem = ({item}) => (
     <View>
       <View style={styles.viewRenderHeader}>
-        <CheckBox value={false} tintColors={{true: 'white', false: 'white'}} />
+        <CheckBox
+          onChange={() => {
+            setChecked(!checked);
+          }}
+          value={item.checked}
+          tintColors={{true: 'white', false: 'white'}}
+        />
         <View>
           <View style={{flexDirection: 'row'}}>
             <Text style={styles.textRenderHeader}>{item.title}</Text>
@@ -104,15 +69,15 @@ export default function Home({navigation}) {
                 name={'chevron-down'}
                 color={'white'}
                 size={35}
-                onPress={() => toggleCollapse(item.id)}
+                onPress={() => toggleCollapse(item._id)}
               />
             </TouchableOpacity>
           </View>
         </View>
       </View>
       <View>
-        <Collapsible collapsed={!collapsed[item.id]}>
-          <Text style={styles.textRenderDesc}>{item.content}</Text>
+        <Collapsible collapsed={!collapsed[item._id]}>
+          <Text style={styles.textRenderDesc}>{item.desc}</Text>
           <Gap height={30} />
           <View style={styles.viewEditHapus}>
             <View style={styles.viewBtnHapus}>
@@ -139,6 +104,67 @@ export default function Home({navigation}) {
     </View>
   );
 
+  const [username, setUsername] = useState('');
+  const [todos, setTodos] = useState('');
+
+  useEffect(() => {
+    const getProfile = async () => {
+      const userToken = await EncryptedStorage.getItem('userToken');
+      try {
+        const userResponse = await axios.get(
+          'https://todo-api-omega.vercel.app/api/v1/profile',
+          {
+            headers: {Authorization: `Bearer ${userToken}`},
+          },
+        );
+        setUsername(userResponse.data.user.username);
+      } catch (error) {
+        console.error('Failed to fetch user data:', error);
+      }
+    };
+
+    const getTodos = async () => {
+      const userToken = await EncryptedStorage.getItem('userToken');
+      try {
+        const userResponse = await axios.get(
+          'https://todo-api-omega.vercel.app/api/v1/todos',
+          {
+            headers: {Authorization: `Bearer ${userToken}`},
+          },
+        );
+        setTodos(userResponse.data.data.todos);
+      } catch (error) {
+        console.error('Failed to fetch user data:', error);
+      }
+    };
+    getTodos();
+    getProfile();
+  }, []);
+
+  const addTodo = async () => {
+    const userToken = await EncryptedStorage.getItem('userToken');
+    try {
+      const response = await axios.post(
+        'https://todo-api-omega.vercel.app/api/v1/todos',
+        {
+          title: tugas,
+          desc: deskripsi,
+        },
+        {
+          headers: {Authorization: `Bearer ${userToken}`},
+        },
+      );
+      setTodos(response.data.data.todos);
+    } catch (error) {
+      console.error('Failed to add todo:', error);
+    }
+  };
+
+  const logout = async () => {
+    await EncryptedStorage.removeItem('userToken');
+    navigation.replace('Login');
+  };
+
   return (
     <View style={{flex: 1}}>
       <Background />
@@ -147,7 +173,7 @@ export default function Home({navigation}) {
       {/* header signout, username, profile */}
       <View style={styles.header}>
         <View style={{flexDirection: 'row'}}>
-          <TouchableOpacity onPress={() => navigation.replace('Login')}>
+          <TouchableOpacity onPress={logout}>
             <Icon
               name={'exit-to-app'}
               size={50}
@@ -158,7 +184,9 @@ export default function Home({navigation}) {
           <Gap width={10} />
           <View>
             <Text style={{color: 'white', fontSize: 15}}>Hi,</Text>
-            <Text style={{color: 'white', fontSize: 22}}>Username</Text>
+            <Text style={{color: 'white', fontSize: 22, fontWeight: '700'}}>
+              {username}
+            </Text>
           </View>
         </View>
         <Icon name={'account-circle-outline'} size={50} color={'white'} />
@@ -168,9 +196,9 @@ export default function Home({navigation}) {
       {/* flatlist */}
 
       <FlatList
-        data={DATA}
+        data={todos}
+        keyExtractor={item => item._id}
         renderItem={renderItem}
-        keyExtractor={item => item.id}
       />
 
       <View style={{...styles.viewLineDiagonal, marginBottom: 10}} />
@@ -207,40 +235,46 @@ export default function Home({navigation}) {
                 />
               </TouchableOpacity>
             </View>
-            <Gap height={20} />
-            <View style={styles.textInput}>
-              <Icons name="post-add" size={20} color="black" />
-              <TextInput
-                placeholder="Tambah Tugas"
-                placeholderTextColor="grey"
-                value={tugas}
-                onChangeText={handleTugasChange}
-              />
-            </View>
-            <Text
-              style={{
-                color: 'white',
-                alignSelf: 'flex-end',
-                right: 15,
-                fontSize: 12,
-              }}>
-              {tugas.length} / {maxLength}
-            </Text>
+
             <Gap height={30} />
-            <View style={styles.textInput}>
-              <Icons name="post-add" size={20} color="black" />
-              <TextInput
-                placeholder="Tambah Deskripsi"
-                placeholderTextColor="grey"
-                value={deskripsi}
-                onChangeText={handleDeskripsiChange}
-              />
-            </View>
-            <Text style={styles.textCounter}>
-              {deskripsi.length} / {maxLength}
-            </Text>
+
+            <FormInput
+              titleShow={false}
+              iconName="post"
+              placeholder="Tambah Tugas"
+              autoCapitalize={'sentences'}
+              onChangeText={tugas => {
+                setTugas(tugas);
+              }}
+              counter={{
+                show: true,
+                value: tugas,
+                valueMaximum: 255,
+                valueMinimum: 5,
+              }}
+            />
+
             <Gap height={20} />
-            <TouchableNativeFeedback useForeground>
+
+            <FormInput
+              titleShow={false}
+              iconName="post"
+              placeholder="Tambah Deskripsi"
+              autoCapitalize={'sentences'}
+              onChangeText={deskripsi => {
+                setDeskripsi(deskripsi);
+              }}
+              counter={{
+                show: true,
+                value: deskripsi,
+                valueMaximum: 255,
+                valueMinimum: 5,
+              }}
+            />
+
+            <Gap height={20} />
+
+            <TouchableNativeFeedback useForeground onPress={addTodo}>
               <View style={styles.viewbtnAddTugasModal}>
                 <Text style={styles.textAddTugasModal}>Tambah</Text>
               </View>
@@ -270,31 +304,47 @@ export default function Home({navigation}) {
                 />
               </TouchableOpacity>
             </View>
+
             <Gap height={20} />
-            <View style={styles.textInput}>
-              <TextInput
-                placeholder="Edit Tugas"
-                placeholderTextColor="grey"
-                value={editTugas}
-                onChangeText={setEditTugas}
-              />
-            </View>
-            <Text style={styles.textCounter}>
-              {editTugas.length}/{maxLength}
-            </Text>
-            <Gap height={30} />
-            <View style={styles.textInput}>
-              <TextInput
-                placeholder="Edit deskripsi"
-                placeholderTextColor="grey"
-                value={editDeskripsi}
-                onChangeText={setEditDeskripsi}
-              />
-            </View>
-            <Text style={styles.textCounter}>
-              {editDeskripsi.length}/{maxLength}
-            </Text>
+
+            <FormInput
+              value={tugas}
+              titleShow={false}
+              iconName="post"
+              placeholder="Edit Tugas"
+              autoCapitalize={'sentences'}
+              onChangeText={tugas => {
+                setTugas(tugas);
+              }}
+              counter={{
+                show: true,
+                value: tugas,
+                valueMaximum: 255,
+                valueMinimum: 5,
+              }}
+            />
+
             <Gap height={20} />
+
+            <FormInput
+              value={deskripsi}
+              titleShow={false}
+              iconName="post"
+              placeholder="Edit Deskripsi"
+              autoCapitalize={'sentences'}
+              onChangeText={deskripsi => {
+                setDeskripsi(deskripsi);
+              }}
+              counter={{
+                show: true,
+                value: deskripsi,
+                valueMaximum: 255,
+                valueMinimum: 5,
+              }}
+            />
+
+            <Gap height={20} />
+
             <TouchableNativeFeedback useForeground>
               <View style={styles.viewbtnAddTugasModal}>
                 <Text style={styles.textAddTugasModal}>Edit</Text>

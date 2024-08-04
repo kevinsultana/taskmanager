@@ -1,36 +1,40 @@
 import {
+  Alert,
   StatusBar,
   StyleSheet,
   Text,
-  TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
 import {Background, Gap} from '../component';
 import axios from 'axios';
 import {useState} from 'react';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import CheckBox from '@react-native-community/checkbox';
+import EncryptedStorage from 'react-native-encrypted-storage';
+import FormInput from '../component/FormInput';
 
 export default function Login({navigation}) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [secure, setSecure] = useState(true);
+  const [rememberMe, setRememberMe] = useState('');
 
-  function submitLogin() {
-    axios
-      .post('https://todo-api-omega.vercel.app/api/v1/auth/login', {
-        email: email,
-        password: password,
-      })
-      .then(Response => {
-        Response.data.user.token;
-        navigation.navigate('Home');
-      })
-      .catch(error => {
-        console.error(error);
-      });
-  }
+  const submitLogin = async () => {
+    try {
+      const response = await axios.post(
+        'https://todo-api-omega.vercel.app/api/v1/auth/login',
+        {email, password},
+      );
+      if (response.data.user.token) {
+        await EncryptedStorage.setItem('userToken', response.data.user.token);
+        navigation.replace('Home');
+      }
+    } catch (error) {
+      Alert.alert(
+        'Gagal Login',
+        'Silahkan cek kembali Email dan Passwordnya, atau Daftar.',
+      );
+    }
+  };
 
   return (
     <View>
@@ -39,54 +43,45 @@ export default function Login({navigation}) {
       <View style={styles.viewSignin}>
         <Text style={styles.textSignIn}>Sign in</Text>
         <View style={styles.viewModal}>
-          <Gap height={20} />
-          <Text style={styles.textModal}>Email</Text>
-          <View style={styles.textInputModal}>
-            <Icon name="email" size={20} color="black" />
-            <Gap width={5} />
-            <TextInput
-              placeholder="Masukkan email disini"
-              placeholderTextColor={'grey'}
-              backgroundColor="white"
-              value={email}
-              onChangeText={setEmail}
-            />
-          </View>
-          <Text style={styles.textModal}>Password</Text>
-          <View style={styles.textInputModal}>
-            <Icon name="lock" size={20} color="black" />
-            <Gap width={5} />
-            <TextInput
-              placeholder="Masukkan password disini"
-              placeholderTextColor={'grey'}
-              backgroundColor="white"
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry={secure}
-              style={{flex: 1, color: 'black'}}
-            />
-            <TouchableOpacity onPress={() => setSecure(!secure)}>
-              <Icon name={secure ? 'eye-off' : 'eye'} size={20} color="black" />
-            </TouchableOpacity>
-          </View>
-          <View
-            style={{
-              flexDirection: 'row',
-              justifyContent: 'flex-end',
-              alignItems: 'center',
-              marginHorizontal: 20,
-            }}>
+          <Gap height={10} />
+
+          <FormInput
+            title="Email"
+            placeholder="Masukkan Email..."
+            keyboardType={'email-address'}
+            autoCapitalize={'none'}
+            onChangeText={email => setEmail(email)}
+          />
+
+          <Gap height={10} />
+
+          <FormInput
+            title="Password"
+            placeholder="Kata Sandi..."
+            iconName="lock"
+            password={true}
+            autoCapitalize={'none'}
+            onChangeText={password => setPassword(password)}
+          />
+
+          <Gap height={10} />
+
+          <View style={styles.viewRememberMe}>
             <CheckBox
-              value={true}
+              onChange={() => setRememberMe(!rememberMe)}
+              value={rememberMe}
               tintColors={{true: 'white', false: 'white'}}
-              style={{transform: [{scale: 0.8}]}}
             />
-            <Text style={{fontWeight: '500', color: 'white'}}>Ingat Saya</Text>
+            <Text
+              style={{fontWeight: '500', color: 'white'}}
+              onPress={() => setRememberMe(!rememberMe)}>
+              Ingat Saya
+            </Text>
           </View>
-          <Gap height={5} />
-          <TouchableOpacity
-            style={styles.btnLogin}
-            onPress={() => navigation.replace('Home')}>
+
+          <Gap height={10} />
+
+          <TouchableOpacity style={styles.btnLogin} onPress={submitLogin}>
             <Text style={styles.textLogin}>Masuk</Text>
           </TouchableOpacity>
           <TouchableOpacity
@@ -98,7 +93,7 @@ export default function Login({navigation}) {
             onPress={() => navigation.navigate('Register')}>
             <Text style={styles.textLogin}>Daftar</Text>
           </TouchableOpacity>
-          <Gap height={20} />
+          <Gap height={10} />
         </View>
       </View>
     </View>
@@ -106,6 +101,12 @@ export default function Login({navigation}) {
 }
 
 const styles = StyleSheet.create({
+  viewRememberMe: {
+    flexDirection: 'row',
+    alignSelf: 'flex-end',
+    alignItems: 'center',
+    marginHorizontal: 20,
+  },
   textLogin: {
     fontSize: 19,
     fontWeight: '700',
@@ -123,22 +124,6 @@ const styles = StyleSheet.create({
     marginVertical: 10,
     borderRadius: 40 / 2,
     elevation: 5,
-  },
-  textInputModal: {
-    borderRadius: 25,
-    marginHorizontal: 20,
-    elevation: 5,
-    paddingHorizontal: 10,
-    backgroundColor: 'white',
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  textModal: {
-    marginHorizontal: 30,
-    marginVertical: 10,
-    fontSize: 16,
-    fontWeight: '700',
-    color: 'white',
   },
   viewModal: {
     backgroundColor: '#d1d1d196',
