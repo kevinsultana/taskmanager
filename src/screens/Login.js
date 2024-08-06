@@ -30,8 +30,10 @@ export default function Login({navigation}) {
       }
     } catch (error) {
       Alert.alert(
-        'Gagal Login',
-        'Silahkan cek kembali Email dan Passwordnya, atau Daftar.',
+        JSON.stringify(error.response.data.status),
+        JSON.stringify(error.response.data.message),
+        // 'Gagal Login',
+        // 'Silahkan cek kembali Email dan Passwordnya, atau Daftar.',
       );
     }
   };

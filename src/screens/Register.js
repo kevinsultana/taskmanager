@@ -27,16 +27,18 @@ export default function Register({navigation}) {
       const response = await axios.post(
         'https://todo-api-omega.vercel.app/api/v1/auth/register',
         {
-          username: userName,
-          email: email,
-          password: password,
-          confirmPassword: confirmPassword,
+          userName,
+          email,
+          password,
+          confirmPassword,
         },
       );
-      if (response) {
-        navigation.reset({routes: [{name: 'Login'}]});
+      if (response.data.user) {
+        console.log(response.data.user);
       }
+      // navigation.replace('Login');
     } catch (error) {
+      console.log(error.response.data);
       Alert.alert('Registrasi Gagal', 'Silahkan Coba Lagi');
     }
   };

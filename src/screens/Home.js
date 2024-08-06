@@ -81,7 +81,7 @@ export default function Home({navigation}) {
           <Gap height={30} />
           <View style={styles.viewEditHapus}>
             <View style={styles.viewBtnHapus}>
-              <TouchableOpacity>
+              <TouchableOpacity onPress={deleteTask}>
                 <Icon name={'trash-can'} color={'white'} size={20} />
               </TouchableOpacity>
             </View>
@@ -144,7 +144,7 @@ export default function Home({navigation}) {
   const addTodo = async () => {
     const userToken = await EncryptedStorage.getItem('userToken');
     try {
-      const response = await axios.post(
+      await axios.post(
         'https://todo-api-omega.vercel.app/api/v1/todos',
         {
           title: tugas,
@@ -154,7 +154,7 @@ export default function Home({navigation}) {
           headers: {Authorization: `Bearer ${userToken}`},
         },
       );
-      setTodos(response.data.data.todos);
+      closeModalAdd();
     } catch (error) {
       console.error('Failed to add todo:', error);
     }
@@ -163,6 +163,21 @@ export default function Home({navigation}) {
   const logout = async () => {
     await EncryptedStorage.removeItem('userToken');
     navigation.replace('Login');
+  };
+
+  const deleteTask = async id => {
+    const token = await EncryptedStorage.getItem('userToken');
+    try {
+      await axios.delete(
+        `https://todo-api-omega.vercel.app/api/v1/todos${id}`,
+        {
+          headers: {Authorization: `Bearer ${token}`},
+        },
+      );
+      setTasks(tasks.filter(task => task.id !== id));
+    } catch (error) {
+      console.error('Failed to delete task:', error);
+    }
   };
 
   return (
