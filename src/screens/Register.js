@@ -10,6 +10,7 @@ import {Background, Gap} from '../component';
 import {useState} from 'react';
 import CheckBox from '@react-native-community/checkbox';
 import FormInput from '../component/FormInput';
+import axios from 'axios';
 
 export default function Register({navigation}) {
   const [userName, setUserName] = useState('');
@@ -24,22 +25,19 @@ export default function Register({navigation}) {
       return;
     }
     try {
-      const response = await axios.post(
+      await axios.post(
         'https://todo-api-omega.vercel.app/api/v1/auth/register',
         {
-          userName,
+          username: userName,
           email,
           password,
           confirmPassword,
         },
       );
-      if (response.data.user) {
-        console.log(response.data.user);
-      }
-      // navigation.replace('Login');
+
+      navigation.replace('Login');
     } catch (error) {
-      console.log(error.response.data);
-      Alert.alert('Registrasi Gagal', 'Silahkan Coba Lagi');
+      Alert.alert('Registrasi Gagal', error.response.data.message);
     }
   };
 
@@ -52,6 +50,7 @@ export default function Register({navigation}) {
         <View style={styles.viewModal}>
           <Gap height={20} />
           <FormInput
+            value={userName}
             title="Username"
             iconName="account"
             placeholder="Masukkan Username..."
@@ -62,6 +61,7 @@ export default function Register({navigation}) {
           <Gap height={5} />
 
           <FormInput
+            value={email}
             title="Email"
             placeholder="Masukkan Email..."
             autoCapitalize={'none'}
@@ -72,6 +72,7 @@ export default function Register({navigation}) {
           <Gap height={5} />
 
           <FormInput
+            value={password}
             title="Password"
             iconName="lock"
             placeholder="Masukkan Password..."
@@ -83,6 +84,7 @@ export default function Register({navigation}) {
           <Gap height={5} />
 
           <FormInput
+            value={confirmPassword}
             title="Password"
             iconName="lock"
             placeholder="Masukkan Password..."

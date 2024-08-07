@@ -11,6 +11,7 @@ import {useState} from 'react';
 
 export default function FormInput({
   title = 'Nama Input',
+  value = '',
   titleShow = true,
   iconName = 'gmail',
   password = false,
@@ -34,6 +35,7 @@ export default function FormInput({
         <Icon name={iconName} size={20} color="black" />
         <Gap width={5} />
         <TextInput
+          value={value}
           placeholder={placeholder}
           placeholderTextColor={'grey'}
           backgroundColor="white"

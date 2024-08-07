@@ -10,11 +10,11 @@ export default function Splashscreen({navigation}) {
       if (userToken) {
         setTimeout(() => {
           navigation.replace('Home');
-        }, 3000);
+        }, 2000);
       } else {
         setTimeout(() => {
           navigation.replace('Login');
-        }, 3000);
+        }, 2000);
       }
     } catch (error) {
       console.log('gagal di ambil');

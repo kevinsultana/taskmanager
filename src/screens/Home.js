@@ -1,7 +1,6 @@
 import {
   View,
   Text,
-  ImageBackground,
   StatusBar,
   StyleSheet,
   TouchableOpacity,
@@ -9,6 +8,7 @@ import {
   Modal,
   Pressable,
   TouchableNativeFeedback,
+  Alert,
 } from 'react-native';
 import {Background, Gap} from '../component';
 import {useEffect, useState} from 'react';
@@ -17,20 +17,11 @@ import Collapsible from 'react-native-collapsible';
 import CheckBox from '@react-native-community/checkbox';
 import FormInput from '../component/FormInput';
 import EncryptedStorage from 'react-native-encrypted-storage';
-import axios from 'axios';
-
-const DATA = [
-  {
-    id: '1',
-    title: 'Tugas Satu',
-    desc: 'Deskripsi tugas satu yang sangat panjang sekali',
-    checked: false,
-  },
-];
+import axios, {isAxiosError} from 'axios';
 
 export default function Home({navigation}) {
   const [collapsed, setCollapsed] = useState({});
-  const [checked, setChecked] = useState('');
+  const [checked, setChecked] = useState(false);
 
   const [modalVisible, setModalVisible] = useState(false);
   const closeModal = () => setModalVisible(false);
@@ -47,15 +38,19 @@ export default function Home({navigation}) {
     }));
   };
 
+  const [loading, setLoading] = useState(false);
+
   const [tugas, setTugas] = useState('');
   const [deskripsi, setDeskripsi] = useState('');
+  const [username, setUsername] = useState('');
+  const [todos, setTodos] = useState([]);
 
   const renderItem = ({item}) => (
     <View>
       <View style={styles.viewRenderHeader}>
         <CheckBox
           onChange={() => {
-            setChecked(!checked);
+            checkistTask(item);
           }}
           value={item.checked}
           tintColors={{true: 'white', false: 'white'}}
@@ -81,13 +76,20 @@ export default function Home({navigation}) {
           <Gap height={30} />
           <View style={styles.viewEditHapus}>
             <View style={styles.viewBtnHapus}>
-              <TouchableOpacity onPress={deleteTask}>
+              <TouchableOpacity
+                onPress={() => {
+                  confirmDelete(item._id);
+                }}>
                 <Icon name={'trash-can'} color={'white'} size={20} />
               </TouchableOpacity>
             </View>
             <Gap width={10} />
             <View style={styles.viewBtnEdit}>
-              <TouchableOpacity onPress={openModal}>
+              <TouchableOpacity
+                onPress={() => {
+                  setModalVisible(true);
+                  setEditedTodos(item);
+                }}>
                 <View style={{flexDirection: 'row'}}>
                   <Icon name={'lead-pencil'} color={'white'} size={20} />
                   <Gap width={10} />
@@ -104,39 +106,37 @@ export default function Home({navigation}) {
     </View>
   );
 
-  const [username, setUsername] = useState('');
-  const [todos, setTodos] = useState('');
+  const getProfile = async () => {
+    const userToken = await EncryptedStorage.getItem('userToken');
+    try {
+      const userResponse = await axios.get(
+        'https://todo-api-omega.vercel.app/api/v1/profile',
+        {
+          headers: {Authorization: `Bearer ${userToken}`},
+        },
+      );
+      setUsername(userResponse.data.user.username);
+    } catch (error) {
+      console.error('Failed to fetch user data:', error);
+    }
+  };
+
+  const getTodos = async () => {
+    const userToken = await EncryptedStorage.getItem('userToken');
+    try {
+      const userResponse = await axios.get(
+        'https://todo-api-omega.vercel.app/api/v1/todos',
+        {
+          headers: {Authorization: `Bearer ${userToken}`},
+        },
+      );
+      setTodos(userResponse.data.data.todos);
+    } catch (error) {
+      console.error('Failed to fetch user data:', error);
+    }
+  };
 
   useEffect(() => {
-    const getProfile = async () => {
-      const userToken = await EncryptedStorage.getItem('userToken');
-      try {
-        const userResponse = await axios.get(
-          'https://todo-api-omega.vercel.app/api/v1/profile',
-          {
-            headers: {Authorization: `Bearer ${userToken}`},
-          },
-        );
-        setUsername(userResponse.data.user.username);
-      } catch (error) {
-        console.error('Failed to fetch user data:', error);
-      }
-    };
-
-    const getTodos = async () => {
-      const userToken = await EncryptedStorage.getItem('userToken');
-      try {
-        const userResponse = await axios.get(
-          'https://todo-api-omega.vercel.app/api/v1/todos',
-          {
-            headers: {Authorization: `Bearer ${userToken}`},
-          },
-        );
-        setTodos(userResponse.data.data.todos);
-      } catch (error) {
-        console.error('Failed to fetch user data:', error);
-      }
-    };
     getTodos();
     getProfile();
   }, []);
@@ -155,12 +155,14 @@ export default function Home({navigation}) {
         },
       );
       closeModalAdd();
+      getTodos();
     } catch (error) {
-      console.error('Failed to add todo:', error);
+      Alert.alert('Gagal Tambah Tugas', error.response.data.message);
+      // console.error('Failed to add todo:', error.response.data);
     }
   };
 
-  const logout = async () => {
+  const logout = async _id => {
     await EncryptedStorage.removeItem('userToken');
     navigation.replace('Login');
   };
@@ -169,14 +171,69 @@ export default function Home({navigation}) {
     const token = await EncryptedStorage.getItem('userToken');
     try {
       await axios.delete(
-        `https://todo-api-omega.vercel.app/api/v1/todos${id}`,
+        `https://todo-api-omega.vercel.app/api/v1/todos/${id}`,
         {
           headers: {Authorization: `Bearer ${token}`},
         },
       );
-      setTasks(tasks.filter(task => task.id !== id));
+      getTodos();
     } catch (error) {
-      console.error('Failed to delete task:', error);
+      console.error(error.response.data.message);
+    }
+  };
+
+  const confirmDelete = id => {
+    Alert.alert(
+      'Hapus Tugas',
+      'Hapus Tugas? Tindakan ini tidak dapat di ulangi',
+      [
+        {
+          text: 'Hapus',
+          onPress: () => deleteTask(id),
+        },
+        {
+          text: 'Batal',
+        },
+      ],
+    );
+  };
+
+  const [editedTodos, setEditedTodos] = useState({
+    _id: '',
+    title: '',
+    desc: '',
+    checked: '',
+  });
+
+  const updateTask = async () => {
+    const token = await EncryptedStorage.getItem('userToken');
+    try {
+      await axios.put(
+        `https://todo-api-omega.vercel.app/api/v1/todos/${editedTodos._id}`,
+        editedTodos,
+        {headers: {Authorization: `Bearer ${token}`}},
+      );
+      setModalVisible(false);
+      getTodos();
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const checkistTask = async item => {
+    const token = await EncryptedStorage.getItem('userToken');
+    try {
+      await axios.put(
+        `https://todo-api-omega.vercel.app/api/v1/todos/${item._id}`,
+        {
+          checked: !item.checked,
+        },
+        {headers: {Authorization: `Bearer ${token}`}},
+      );
+
+      getTodos();
+    } catch (error) {
+      if (isAxiosError(error)) console.log(error.response.data);
     }
   };
 
@@ -212,8 +269,21 @@ export default function Home({navigation}) {
 
       <FlatList
         data={todos}
+        ListEmptyComponent={
+          <Text
+            style={{
+              color: 'white',
+              alignSelf: 'center',
+              fontSize: 16,
+              fontWeight: '600',
+            }}>
+            Tidak Ada tugas
+          </Text>
+        }
         keyExtractor={item => item._id}
         renderItem={renderItem}
+        refreshing={loading}
+        onRefresh={getTodos}
       />
 
       <View style={{...styles.viewLineDiagonal, marginBottom: 10}} />
@@ -254,6 +324,7 @@ export default function Home({navigation}) {
             <Gap height={30} />
 
             <FormInput
+              value={tugas}
               titleShow={false}
               iconName="post"
               placeholder="Tambah Tugas"
@@ -265,13 +336,14 @@ export default function Home({navigation}) {
                 show: true,
                 value: tugas,
                 valueMaximum: 255,
-                valueMinimum: 5,
+                valueMinimum: 3,
               }}
             />
 
             <Gap height={20} />
 
             <FormInput
+              value={deskripsi}
               titleShow={false}
               iconName="post"
               placeholder="Tambah Deskripsi"
@@ -283,7 +355,7 @@ export default function Home({navigation}) {
                 show: true,
                 value: deskripsi,
                 valueMaximum: 255,
-                valueMinimum: 5,
+                valueMinimum: 25,
               }}
             />
 
@@ -323,44 +395,40 @@ export default function Home({navigation}) {
             <Gap height={20} />
 
             <FormInput
-              value={tugas}
+              value={editedTodos.title}
               titleShow={false}
               iconName="post"
               placeholder="Edit Tugas"
               autoCapitalize={'sentences'}
-              onChangeText={tugas => {
-                setTugas(tugas);
-              }}
+              onChangeText={title => setEditedTodos({...editedTodos, title})}
               counter={{
                 show: true,
-                value: tugas,
+                value: editedTodos.title,
                 valueMaximum: 255,
-                valueMinimum: 5,
+                valueMinimum: 3,
               }}
             />
 
             <Gap height={20} />
 
             <FormInput
-              value={deskripsi}
+              value={editedTodos.desc}
               titleShow={false}
               iconName="post"
               placeholder="Edit Deskripsi"
               autoCapitalize={'sentences'}
-              onChangeText={deskripsi => {
-                setDeskripsi(deskripsi);
-              }}
+              onChangeText={desc => setEditedTodos({...editedTodos, desc})}
               counter={{
                 show: true,
-                value: deskripsi,
+                value: editedTodos.desc,
                 valueMaximum: 255,
-                valueMinimum: 5,
+                valueMinimum: 25,
               }}
             />
 
             <Gap height={20} />
 
-            <TouchableNativeFeedback useForeground>
+            <TouchableNativeFeedback useForeground onPress={() => updateTask()}>
               <View style={styles.viewbtnAddTugasModal}>
                 <Text style={styles.textAddTugasModal}>Edit</Text>
               </View>

@@ -30,10 +30,8 @@ export default function Login({navigation}) {
       }
     } catch (error) {
       Alert.alert(
-        JSON.stringify(error.response.data.status),
-        JSON.stringify(error.response.data.message),
-        // 'Gagal Login',
-        // 'Silahkan cek kembali Email dan Passwordnya, atau Daftar.',
+        'Gagal Login',
+        'Silahkan cek kembali Email dan Passwordnya, atau Daftar.',
       );
     }
   };
@@ -48,6 +46,7 @@ export default function Login({navigation}) {
           <Gap height={10} />
 
           <FormInput
+            value={email}
             title="Email"
             placeholder="Masukkan Email..."
             keyboardType={'email-address'}
@@ -58,6 +57,7 @@ export default function Login({navigation}) {
           <Gap height={10} />
 
           <FormInput
+            value={password}
             title="Password"
             placeholder="Kata Sandi..."
             iconName="lock"
