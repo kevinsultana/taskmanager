@@ -1,4 +1,5 @@
 import {
+  ActivityIndicator,
   Alert,
   StatusBar,
   StyleSheet,
@@ -11,32 +12,43 @@ import {useState} from 'react';
 import CheckBox from '@react-native-community/checkbox';
 import FormInput from '../component/FormInput';
 import axios from 'axios';
+import EncryptedStorage from 'react-native-encrypted-storage';
 
 export default function Register({navigation}) {
-  const [userName, setUserName] = useState('');
+  const [username, setUserName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [rememberMe, setRememberMe] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const submitRegister = async () => {
     if (password !== confirmPassword) {
       Alert.alert('Registrasi Gagal', 'Passwords tidak sama.');
       return;
     }
+    setLoading(true);
     try {
       await axios.post(
         'https://todo-api-omega.vercel.app/api/v1/auth/register',
         {
-          username: userName,
+          username,
           email,
           password,
           confirmPassword,
         },
       );
+      if (rememberMe) {
+        await EncryptedStorage.setItem(
+          'credentials',
+          JSON.stringify({email, password}),
+        );
+      }
 
+      setLoading(false);
       navigation.replace('Login');
     } catch (error) {
+      setLoading(false);
       Alert.alert('Registrasi Gagal', error.response.data.message);
     }
   };
@@ -50,12 +62,12 @@ export default function Register({navigation}) {
         <View style={styles.viewModal}>
           <Gap height={20} />
           <FormInput
-            value={userName}
+            value={username}
             title="Username"
             iconName="account"
             placeholder="Masukkan Username..."
             autoCapitalize={'words'}
-            onChangeText={userName => setUserName(userName)}
+            onChangeText={username => setUserName(username)}
           />
 
           <Gap height={5} />
@@ -108,8 +120,15 @@ export default function Register({navigation}) {
             </Text>
           </View>
           <Gap height={5} />
-          <TouchableOpacity style={styles.btnLogin} onPress={submitRegister}>
-            <Text style={styles.textLogin}>Daftar</Text>
+          <TouchableOpacity
+            style={styles.btnLogin}
+            onPress={submitRegister}
+            disabled={loading}>
+            {loading ? (
+              <ActivityIndicator color={'white'} size={'small'} />
+            ) : (
+              <Text style={styles.textLogin}>Daftar</Text>
+            )}
           </TouchableOpacity>
           <TouchableOpacity
             style={{

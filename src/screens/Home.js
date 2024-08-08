@@ -18,9 +18,12 @@ import CheckBox from '@react-native-community/checkbox';
 import FormInput from '../component/FormInput';
 import EncryptedStorage from 'react-native-encrypted-storage';
 import axios, {isAxiosError} from 'axios';
+import {ActivityIndicator} from 'react-native-paper';
 
-export default function Home({navigation}) {
-  const [collapsed, setCollapsed] = useState({});
+export default function Home({navigation, route}) {
+  const token = route.params.token;
+
+  const [collapsed, setCollapsed] = useState(true);
   const [checked, setChecked] = useState(false);
 
   const [modalVisible, setModalVisible] = useState(false);
@@ -42,7 +45,7 @@ export default function Home({navigation}) {
 
   const [tugas, setTugas] = useState('');
   const [deskripsi, setDeskripsi] = useState('');
-  const [username, setUsername] = useState('');
+  const [username, setUsername] = useState('Pengguna');
   const [todos, setTodos] = useState([]);
 
   const renderItem = ({item}) => (
@@ -55,13 +58,13 @@ export default function Home({navigation}) {
           value={item.checked}
           tintColors={{true: 'white', false: 'white'}}
         />
-        <View>
+        <View style={styles.viewhHeaderTitle}>
           <View style={{flexDirection: 'row'}}>
             <Text style={styles.textRenderHeader}>{item.title}</Text>
-            <Gap width={20} />
+            <Gap width={10} />
             <TouchableOpacity>
               <Icon
-                name={'chevron-down'}
+                name="chevron-down"
                 color={'white'}
                 size={35}
                 onPress={() => toggleCollapse(item._id)}
@@ -80,7 +83,7 @@ export default function Home({navigation}) {
                 onPress={() => {
                   confirmDelete(item._id);
                 }}>
-                <Icon name={'trash-can'} color={'white'} size={20} />
+                <Icon name={'trash-can'} color={'white'} size={22} />
               </TouchableOpacity>
             </View>
             <Gap width={10} />
@@ -91,7 +94,7 @@ export default function Home({navigation}) {
                   setEditedTodos(item);
                 }}>
                 <View style={{flexDirection: 'row'}}>
-                  <Icon name={'lead-pencil'} color={'white'} size={20} />
+                  <Icon name={'lead-pencil'} color={'white'} size={22} />
                   <Gap width={10} />
                   <Text style={styles.textBtnEdit}>Edit</Text>
                 </View>
@@ -107,31 +110,39 @@ export default function Home({navigation}) {
   );
 
   const getProfile = async () => {
-    const userToken = await EncryptedStorage.getItem('userToken');
+    setLoading(true);
     try {
       const userResponse = await axios.get(
         'https://todo-api-omega.vercel.app/api/v1/profile',
         {
-          headers: {Authorization: `Bearer ${userToken}`},
+          headers: {Authorization: `Bearer ${token}`},
         },
       );
+      setLoading(false);
+
       setUsername(userResponse.data.user.username);
     } catch (error) {
+      setLoading(false);
+
       console.error('Failed to fetch user data:', error);
     }
   };
 
   const getTodos = async () => {
-    const userToken = await EncryptedStorage.getItem('userToken');
+    setLoading(true);
     try {
       const userResponse = await axios.get(
         'https://todo-api-omega.vercel.app/api/v1/todos',
         {
-          headers: {Authorization: `Bearer ${userToken}`},
+          headers: {Authorization: `Bearer ${token}`},
         },
       );
+      setLoading(false);
+
       setTodos(userResponse.data.data.todos);
     } catch (error) {
+      setLoading(false);
+
       console.error('Failed to fetch user data:', error);
     }
   };
@@ -141,8 +152,10 @@ export default function Home({navigation}) {
     getProfile();
   }, []);
 
+  const [loadingAdd, setLoadingAdd] = useState(false);
+
   const addTodo = async () => {
-    const userToken = await EncryptedStorage.getItem('userToken');
+    setLoadingAdd(true);
     try {
       await axios.post(
         'https://todo-api-omega.vercel.app/api/v1/todos',
@@ -151,24 +164,26 @@ export default function Home({navigation}) {
           desc: deskripsi,
         },
         {
-          headers: {Authorization: `Bearer ${userToken}`},
+          headers: {Authorization: `Bearer ${token}`},
         },
       );
+      setLoadingAdd(false);
+      setTugas('');
+      setDeskripsi('');
       closeModalAdd();
       getTodos();
     } catch (error) {
+      setLoadingAdd(false);
       Alert.alert('Gagal Tambah Tugas', error.response.data.message);
-      // console.error('Failed to add todo:', error.response.data);
     }
   };
 
   const logout = async _id => {
-    await EncryptedStorage.removeItem('userToken');
+    await EncryptedStorage.removeItem('credentials');
     navigation.replace('Login');
   };
 
   const deleteTask = async id => {
-    const token = await EncryptedStorage.getItem('userToken');
     try {
       await axios.delete(
         `https://todo-api-omega.vercel.app/api/v1/todos/${id}`,
@@ -204,24 +219,27 @@ export default function Home({navigation}) {
     desc: '',
     checked: '',
   });
+  const [loadingEdit, setLoadingEdit] = useState(false);
 
   const updateTask = async () => {
-    const token = await EncryptedStorage.getItem('userToken');
+    setLoadingEdit(true);
     try {
       await axios.put(
         `https://todo-api-omega.vercel.app/api/v1/todos/${editedTodos._id}`,
         editedTodos,
         {headers: {Authorization: `Bearer ${token}`}},
       );
+      setLoadingEdit(false);
+
       setModalVisible(false);
       getTodos();
     } catch (error) {
+      setLoadingEdit(false);
       console.log(error);
     }
   };
 
   const checkistTask = async item => {
-    const token = await EncryptedStorage.getItem('userToken');
     try {
       await axios.put(
         `https://todo-api-omega.vercel.app/api/v1/todos/${item._id}`,
@@ -363,7 +381,11 @@ export default function Home({navigation}) {
 
             <TouchableNativeFeedback useForeground onPress={addTodo}>
               <View style={styles.viewbtnAddTugasModal}>
-                <Text style={styles.textAddTugasModal}>Tambah</Text>
+                {loadingAdd ? (
+                  <ActivityIndicator color="white" size={'small'} />
+                ) : (
+                  <Text style={styles.textAddTugasModal}>Tambah</Text>
+                )}
               </View>
             </TouchableNativeFeedback>
           </View>
@@ -430,7 +452,11 @@ export default function Home({navigation}) {
 
             <TouchableNativeFeedback useForeground onPress={() => updateTask()}>
               <View style={styles.viewbtnAddTugasModal}>
-                <Text style={styles.textAddTugasModal}>Edit</Text>
+                {loadingEdit ? (
+                  <ActivityIndicator color="white" size={'small'} />
+                ) : (
+                  <Text style={styles.textAddTugasModal}>Edit</Text>
+                )}
               </View>
             </TouchableNativeFeedback>
           </View>
@@ -441,12 +467,6 @@ export default function Home({navigation}) {
 }
 
 const styles = StyleSheet.create({
-  textCounter: {
-    color: 'white',
-    alignSelf: 'flex-end',
-    right: 15,
-    fontSize: 12,
-  },
   viewLineBorder: {
     alignSelf: 'center',
     width: '90%',
@@ -457,21 +477,21 @@ const styles = StyleSheet.create({
   },
   textBtnEdit: {
     color: 'white',
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '600',
   },
   viewBtnEdit: {
     width: 85,
-    height: 30,
-    borderRadius: 30 / 2,
+    height: 35,
+    borderRadius: 35 / 2,
     backgroundColor: '#00677E',
     justifyContent: 'center',
     alignItems: 'center',
   },
   viewBtnHapus: {
-    width: 30,
-    height: 30,
-    borderRadius: 30 / 2,
+    width: 35,
+    height: 35,
+    borderRadius: 35 / 2,
     backgroundColor: '#9A4242',
     justifyContent: 'center',
     alignItems: 'center',
@@ -484,13 +504,17 @@ const styles = StyleSheet.create({
   textRenderDesc: {
     color: 'white',
     marginHorizontal: 35,
-    fontSize: 15,
-    fontWeight: '400',
+    fontSize: 16,
+    fontWeight: '500',
   },
   textRenderHeader: {
-    fontSize: 24,
-    fontWeight: '700',
+    fontSize: 22,
+    fontWeight: 'bold',
     color: 'white',
+  },
+  viewhHeaderTitle: {
+    flex: 0.85,
+    alignItems: 'flex-end',
   },
   viewRenderHeader: {
     flexDirection: 'row',

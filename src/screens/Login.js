@@ -1,4 +1,5 @@
 import {
+  ActivityIndicator,
   Alert,
   StatusBar,
   StyleSheet,
@@ -16,19 +17,28 @@ import FormInput from '../component/FormInput';
 export default function Login({navigation}) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [rememberMe, setRememberMe] = useState('');
+
+  const [rememberMe, setRememberMe] = useState(false);
+
+  const [loading, setLoading] = useState(false);
 
   const submitLogin = async () => {
+    setLoading(true);
     try {
       const response = await axios.post(
         'https://todo-api-omega.vercel.app/api/v1/auth/login',
         {email, password},
       );
-      if (response.data.user.token) {
-        await EncryptedStorage.setItem('userToken', response.data.user.token);
-        navigation.replace('Home');
+      if (rememberMe) {
+        await EncryptedStorage.setItem(
+          'credentials',
+          JSON.stringify({email, password}),
+        );
       }
+      setLoading(false);
+      navigation.replace('Home', {token: response.data.user.token});
     } catch (error) {
+      setLoading(false);
       Alert.alert(
         'Gagal Login',
         'Silahkan cek kembali Email dan Passwordnya, atau Daftar.',
@@ -83,8 +93,15 @@ export default function Login({navigation}) {
 
           <Gap height={10} />
 
-          <TouchableOpacity style={styles.btnLogin} onPress={submitLogin}>
-            <Text style={styles.textLogin}>Masuk</Text>
+          <TouchableOpacity
+            style={styles.btnLogin}
+            onPress={submitLogin}
+            disabled={loading}>
+            {loading ? (
+              <ActivityIndicator color={'white'} size={'small'} />
+            ) : (
+              <Text style={styles.textLogin}>Masuk</Text>
+            )}
           </TouchableOpacity>
           <TouchableOpacity
             style={{
