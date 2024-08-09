@@ -24,11 +24,9 @@ export default function Home({navigation, route}) {
   const token = route.params.token;
 
   const [collapsed, setCollapsed] = useState(true);
-  const [checked, setChecked] = useState(false);
 
   const [modalVisible, setModalVisible] = useState(false);
   const closeModal = () => setModalVisible(false);
-  const openModal = () => setModalVisible(true);
 
   const [modalVisibleAdd, setModalVisibleAdd] = useState(false);
   const closeModalAdd = () => setModalVisibleAdd(false);
@@ -47,67 +45,6 @@ export default function Home({navigation, route}) {
   const [deskripsi, setDeskripsi] = useState('');
   const [username, setUsername] = useState('Pengguna');
   const [todos, setTodos] = useState([]);
-
-  const renderItem = ({item}) => (
-    <View>
-      <View style={styles.viewRenderHeader}>
-        <CheckBox
-          onChange={() => {
-            checkistTask(item);
-          }}
-          value={item.checked}
-          tintColors={{true: 'white', false: 'white'}}
-        />
-        <View style={styles.viewhHeaderTitle}>
-          <View style={{flexDirection: 'row'}}>
-            <Text style={styles.textRenderHeader}>{item.title}</Text>
-            <Gap width={10} />
-            <TouchableOpacity>
-              <Icon
-                name="chevron-down"
-                color={'white'}
-                size={35}
-                onPress={() => toggleCollapse(item._id)}
-              />
-            </TouchableOpacity>
-          </View>
-        </View>
-      </View>
-      <View>
-        <Collapsible collapsed={!collapsed[item._id]}>
-          <Text style={styles.textRenderDesc}>{item.desc}</Text>
-          <Gap height={30} />
-          <View style={styles.viewEditHapus}>
-            <View style={styles.viewBtnHapus}>
-              <TouchableOpacity
-                onPress={() => {
-                  confirmDelete(item._id);
-                }}>
-                <Icon name={'trash-can'} color={'white'} size={22} />
-              </TouchableOpacity>
-            </View>
-            <Gap width={10} />
-            <View style={styles.viewBtnEdit}>
-              <TouchableOpacity
-                onPress={() => {
-                  setModalVisible(true);
-                  setEditedTodos(item);
-                }}>
-                <View style={{flexDirection: 'row'}}>
-                  <Icon name={'lead-pencil'} color={'white'} size={22} />
-                  <Gap width={10} />
-                  <Text style={styles.textBtnEdit}>Edit</Text>
-                </View>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </Collapsible>
-      </View>
-
-      {/* view line border */}
-      <View style={styles.viewLineBorder} />
-    </View>
-  );
 
   const getProfile = async () => {
     setLoading(true);
@@ -179,8 +116,22 @@ export default function Home({navigation, route}) {
   };
 
   const logout = async _id => {
-    await EncryptedStorage.removeItem('credentials');
-    navigation.replace('Login');
+    Alert.alert('Keluar?', 'Sesi anda akan berakhir', [
+      {
+        text: 'Keluar',
+        onPress: async () => {
+          try {
+            await EncryptedStorage.removeItem('credentials');
+            navigation.replace('Login');
+          } catch (error) {
+            navigation.replace('Login');
+          }
+        },
+      },
+      {
+        text: 'Batal',
+      },
+    ]);
   };
 
   const deleteTask = async id => {
@@ -258,7 +209,7 @@ export default function Home({navigation, route}) {
   return (
     <View style={{flex: 1}}>
       <Background />
-      <StatusBar backgroundColor={'#a1a1a1'} />
+      <Gap height={StatusBar.currentHeight} />
 
       {/* header signout, username, profile */}
       <View style={styles.header}>
@@ -281,30 +232,95 @@ export default function Home({navigation, route}) {
         </View>
         <Icon name={'account-circle-outline'} size={50} color={'white'} />
       </View>
+
+      {/* line Diagonal atas */}
       <View style={{...styles.viewLineDiagonal, marginTop: 5}} />
 
       {/* flatlist */}
-
       <FlatList
         data={todos}
         ListEmptyComponent={
-          <Text
-            style={{
-              color: 'white',
-              alignSelf: 'center',
-              fontSize: 16,
-              fontWeight: '600',
-            }}>
-            Tidak Ada tugas
-          </Text>
+          <Text style={styles.textEmptyComponent}>Tidak Ada tugas</Text>
         }
         keyExtractor={item => item._id}
-        renderItem={renderItem}
+        renderItem={({item}) => {
+          return (
+            <View
+              style={{
+                width: '100%',
+                maxWidth: 480,
+                alignSelf: 'center',
+              }}>
+              <View style={styles.viewRenderHeader}>
+                <CheckBox
+                  onChange={() => {
+                    checkistTask(item);
+                  }}
+                  value={item.checked}
+                  tintColors={{true: 'white', false: 'white'}}
+                />
+                <View style={styles.viewhHeaderTitle}>
+                  <View style={{flexDirection: 'row'}}>
+                    <Text style={styles.textRenderHeader}>{item.title}</Text>
+                    <Gap width={10} />
+                    <TouchableOpacity>
+                      <Icon
+                        name={collapsed ? 'chevron-down' : 'chevron-up'}
+                        color={'white'}
+                        size={35}
+                        onPress={() => toggleCollapse(item._id)}
+                      />
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              </View>
+              <View>
+                <Collapsible collapsed={!collapsed[item._id]}>
+                  <Text style={styles.textRenderDesc}>{item.desc}</Text>
+                  <Gap height={30} />
+                  <View style={styles.viewEditHapus}>
+                    <View style={styles.viewBtnHapus}>
+                      <TouchableOpacity
+                        onPress={() => {
+                          confirmDelete(item._id);
+                        }}>
+                        <Icon name={'trash-can'} color={'white'} size={22} />
+                      </TouchableOpacity>
+                    </View>
+                    <Gap width={10} />
+                    <View style={styles.viewBtnEdit}>
+                      <TouchableOpacity
+                        onPress={() => {
+                          setModalVisible(true);
+                          setEditedTodos(item);
+                        }}>
+                        <View style={{flexDirection: 'row'}}>
+                          <Icon
+                            name={'lead-pencil'}
+                            color={'white'}
+                            size={22}
+                          />
+                          <Gap width={10} />
+                          <Text style={styles.textBtnEdit}>Edit</Text>
+                        </View>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                </Collapsible>
+              </View>
+
+              {/* view line border */}
+              <View style={styles.viewLineBorder} />
+            </View>
+          );
+        }}
         refreshing={loading}
         onRefresh={getTodos}
       />
-
+      {/* line diagonal bawah */}
       <View style={{...styles.viewLineDiagonal, marginBottom: 10}} />
+
+      {/* Btn Tambah */}
       <View style={styles.viewLocBtnAddTugas}>
         <View style={styles.viewBtnAddTugas}>
           <TouchableOpacity onPress={openModalAdd}>
@@ -467,6 +483,12 @@ export default function Home({navigation, route}) {
 }
 
 const styles = StyleSheet.create({
+  textEmptyComponent: {
+    color: 'white',
+    alignSelf: 'center',
+    fontSize: 16,
+    fontWeight: '600',
+  },
   viewLineBorder: {
     alignSelf: 'center',
     width: '90%',
@@ -569,6 +591,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     flex: 1,
     alignItems: 'center',
+    maxWidth: 480,
+    alignSelf: 'center',
+    width: '100%',
   },
   textAddTugas: {
     color: 'white',
@@ -598,9 +623,9 @@ const styles = StyleSheet.create({
     transform: [{rotate: '-3deg'}],
   },
   header: {
-    margin: 30,
+    marginHorizontal: 30,
+    marginVertical: 20,
     flexDirection: 'row',
-    maxWidth: 350,
     justifyContent: 'space-between',
   },
 });

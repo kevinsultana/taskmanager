@@ -12,6 +12,8 @@ export default function Navigator() {
     <Stack.Navigator
       screenOptions={{
         headerShown: false,
+        statusBarColor: 'transparent',
+        statusBarTranslucent: true,
       }}>
       <Stack.Screen name="Splash Screen" component={Splashscreen} />
       <Stack.Screen name="Login" component={Login} />

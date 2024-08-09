@@ -18,6 +18,9 @@ export default function Splashscreen({navigation}) {
           navigation.replace('Home', {token: response.data.user.token});
         }, 2000);
       } else {
+        setTimeout(() => {
+          navigation.replace('Login');
+        }, 2000);
       }
     } catch (error) {
       setTimeout(() => {
