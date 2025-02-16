@@ -1,8 +1,9 @@
-import {Image, StyleSheet, Text, View} from 'react-native';
+import {Image, Text, View} from 'react-native';
 import React, {useEffect} from 'react';
 import {Background} from '../component';
 import EncryptedStorage from 'react-native-encrypted-storage';
 import axios from 'axios';
+import style from '../style/styleSplashScreen';
 
 export default function Splashscreen({navigation}) {
   async function refreshToken() {
@@ -45,17 +46,3 @@ export default function Splashscreen({navigation}) {
     </View>
   );
 }
-
-const style = StyleSheet.create({
-  textVer: {
-    fontWeight: 'bold',
-    color: 'white',
-    position: 'absolute',
-    bottom: 0,
-  },
-  viewContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-});
